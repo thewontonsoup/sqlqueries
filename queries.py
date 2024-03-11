@@ -47,19 +47,55 @@ class Queries(object):
     SELECT DISTINCT m.MachineID, m.IPAddress
     FROM Machines m
     INNER JOIN
-        SoftwareOfProjectInstallOnMachine spim ON m.MachineID = spim.MachineID
-    WHERE 
-        m.SoftwareID = 8
+        SoftwareOfProjectInstallOnMachine spim ON m.MachineID = spim.MachineID and spim.SoftwareID = 8
     """
 
     """calculate the average duration of maintenance for each machine, return (MachineID, Average duration), sorted from highest to lowest"""
     query5 = """
+    SELECT MachineID, AVG(Duration) AS avgduration
+    FROM MaintenanceRecords
+    GROUP BY
+        MachineID
+    ORDER BY
+        avgduration DESC;
+    
     """
 
     """find the course(s) (CourseID and Title) that has(have) the highest number of associated projects."""
     query6 = """
+WITH result AS (
+SELECT 
+    c.CourseID, 
+    c.Title, 
+    COUNT(p.ProjectID) AS NumberOfProjects
+FROM 
+    Courses c
+LEFT JOIN 
+    Projects p ON c.CourseID = p.CourseID
+GROUP BY 
+    c.CourseID, c.Title
+HAVING 
+    COUNT(p.ProjectID) = (
+        SELECT MAX(ProjectCount) 
+        FROM (
+            SELECT COUNT(ProjectID) AS ProjectCount
+            FROM Projects
+            GROUP BY CourseID
+        ) AS Temp
+    )
+    )
+SELECT CourseID, Title FROM result
     """
 
     """Identify students(StudentIDs) who have used machines with "busy" status and "idle" status at least once"""
     query7 = """
+    SELECT DISTINCT s.StudentUCINetID
+    FROM StudentUseMachinesInProject s
+    INNER JOIN Machines m ON s.MachineID = m.MachineID and m.OperationalStatus = 'idle'
+    WHERE EXISTS(
+    SELECT DISTINCT s2.StudentUCINetID
+    FROM StudentUseMachinesInProject s2
+    INNER JOIN Machines m2 ON s2.MachineID = m2.MachineID and m2.OperationalStatus = 'busy'
+    WHERE s2.StudentUCINetID = s.StudentUCINetID
+    )
     """
