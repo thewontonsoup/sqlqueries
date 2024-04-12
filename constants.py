@@ -3,7 +3,7 @@ class Constants:
     USER = "root"
     #USER = "YourDBUserName"
     
-    PASSWORD = "dsu701017"
+    PASSWORD = "YourPassword"
     
     DATABASE = "cs122a_hw4"
     
